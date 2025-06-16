@@ -8,6 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Text.Json;
+
 
 namespace WindowsFormsApp1
 {
@@ -103,6 +105,35 @@ namespace WindowsFormsApp1
         private void Form1_Load(object sender, EventArgs e)
         {
 
+        }
+
+        private void btnZapiszJSON_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog saveDialog = new SaveFileDialog();
+            saveDialog.Filter = "Pliki JSON (*.json)|*.json";
+            saveDialog.Title = "Zapisz dane do pliku JSON";
+
+            if (saveDialog.ShowDialog() == DialogResult.OK)
+            {
+                List<Osoba> osoby = new List<Osoba>();
+
+                foreach (DataRow row in tabela.Rows)
+                {
+                    osoby.Add(new Osoba(
+                        Convert.ToInt32(row["ID"]),
+                        row["Imie"].ToString(),
+                        row["Nazwisko"].ToString(),
+                        Convert.ToInt32(row["Wiek"]),
+                        row["Stanowisko"].ToString()
+                    ));
+                }
+
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                string json = JsonSerializer.Serialize(osoby, options);
+                File.WriteAllText(saveDialog.FileName, json);
+
+                MessageBox.Show("Dane zapisano do pliku JSON.");
+            }
         }
     }
 
