@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,46 +17,90 @@ namespace WindowsFormsApp1
         public Form1()
         {
             InitializeComponent();
-            // Utwórz dane do siatki
-            var dataTable = new System.Data.DataTable();
-            dataTable.Columns.Add("ID", typeof(int));
-            dataTable.Columns.Add("Imie", typeof(string));
-            dataTable.Columns.Add("Nazwisko", typeof(string));
-            dataTable.Columns.Add("Wiek", typeof(int));
-            dataTable.Columns.Add("Stanowisko", typeof(string));
-            // Dodaj przykładowe dane
-            dataTable.Rows.Add(1, "Jan", "Nowak", 41, "Szef");
-            dataTable.Rows.Add(2, "Joanna", "Kowalska", 33, "Sekretarka");
-            // Połącz dane z BindingSource
-            bindingSource1.DataSource = dataTable;
-            // Inicjalizacja DataGridView
+
+            tabela = new DataTable();
+            tabela.Columns.Add("ID", typeof(int));
+            tabela.Columns.Add("Imie", typeof(string));
+            tabela.Columns.Add("Nazwisko", typeof(string));
+            tabela.Columns.Add("Wiek", typeof(int));
+            tabela.Columns.Add("Stanowisko", typeof(string));
+
+            tabela.Rows.Add(1, "Jan", "Nowak", 41, "Szef");
+            tabela.Rows.Add(2, "Joanna", "Kowalska", 33, "Sekretarka");
+
+            bindingSource1.DataSource = tabela;
+
             DataGridView dataGridView1 = new DataGridView();
+            dataGridView1.Name = "dataGridView1";
             dataGridView1.Dock = DockStyle.Fill;
-            // Przypisz DataGridView do BindingSource
-            dataGridView1.DataSource = bindingSource1;
-            // Dodaj DataGridView do formularza
+            dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             Controls.Add(dataGridView1);
+
+            dataGridView1.DataSource = bindingSource1;
         }
 
+        private DataTable tabela;
+        private int ostatnieID = 2; 
 
         private void button2_Click(object sender, EventArgs e)
         {
-
+            DataGridView dgv = Controls.Find("dataGridView1", true).FirstOrDefault() as DataGridView;
+            if (dgv?.SelectedRows.Count > 0)
+            {
+                foreach (DataGridViewRow row in dgv.SelectedRows)
+                {
+                    if (!row.IsNewRow)
+                        dgv.Rows.Remove(row);
+                }
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
             Form2 form2 = new Form2();
-            form2.Show();
-            this.Hide();
+            if (form2.ShowDialog() == DialogResult.OK)
+            {
+                ostatnieID++;
+                tabela.Rows.Add(ostatnieID, form2.Imie, form2.Nazwisko, form2.Wiek, form2.Stanowisko);
+            }
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
-
+            SaveFileDialog saveFile = new SaveFileDialog();
+            saveFile.Filter = "CSV|*.csv";
+            if (saveFile.ShowDialog() == DialogResult.OK)
+            {
+                using (StreamWriter sw = new StreamWriter(saveFile.FileName))
+                {
+                    sw.WriteLine("ID,Imie,Nazwisko,Wiek,Stanowisko");
+                    foreach (DataRow row in tabela.Rows)
+                    {
+                        sw.WriteLine(string.Join(",", row.ItemArray));
+                    }
+                }
+            }
         }
 
         private void button4_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openFile = new OpenFileDialog();
+            openFile.Filter = "CSV|*.csv";
+            if (openFile.ShowDialog() == DialogResult.OK)
+            {
+                tabela.Clear();
+                var lines = File.ReadAllLines(openFile.FileName);
+                for (int i = 1; i < lines.Length; i++)
+                {
+                    var values = lines[i].Split(',');
+                    tabela.Rows.Add(int.Parse(values[0]), values[1], values[2], int.Parse(values[3]), values[4]);
+                    if (int.Parse(values[0]) > ostatnieID)
+                        ostatnieID = int.Parse(values[0]);
+                }
+            }
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
         {
 
         }

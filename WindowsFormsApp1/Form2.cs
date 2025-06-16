@@ -16,6 +16,10 @@ namespace WindowsFormsApp1
         {
             InitializeComponent();
         }
+        public string Imie => textBox1.Text;
+        public string Nazwisko => textBox2.Text;
+        public int Wiek => int.Parse(textBox3.Text);
+        public string Stanowisko => comboBox1.SelectedItem?.ToString();
 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
@@ -39,8 +43,19 @@ namespace WindowsFormsApp1
 
         private void button1_Click(object sender, EventArgs e)
         {
-            Form1 form1 = new Form1();
-            form1.Show();
+            if (string.IsNullOrWhiteSpace(Imie) || string.IsNullOrWhiteSpace(Nazwisko) || string.IsNullOrWhiteSpace(textBox3.Text))
+            {
+                MessageBox.Show("Uzupełnij wszystkie pola.");
+                return;
+            }
+
+            if (!int.TryParse(textBox3.Text, out _))
+            {
+                MessageBox.Show("Wiek musi być liczbą.");
+                return;
+            }
+
+            this.DialogResult = DialogResult.OK;
             this.Close();
         }
 
@@ -49,6 +64,11 @@ namespace WindowsFormsApp1
             Form1 form1 = new Form1();
             form1.Show();
             this.Close();
+        }
+
+        private void Form2_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }
