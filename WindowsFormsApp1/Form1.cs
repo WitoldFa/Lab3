@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Serialization;
 
 namespace WindowsFormsApp1
 {
@@ -103,6 +104,37 @@ namespace WindowsFormsApp1
         private void Form1_Load(object sender, EventArgs e)
         {
 
+        }
+
+        private void btnZapiszXML_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog saveDialog = new SaveFileDialog();
+            saveDialog.Filter = "Pliki XML (*.xml)|*.xml";
+            saveDialog.Title = "Zapisz dane do pliku XML";
+
+            if (saveDialog.ShowDialog() == DialogResult.OK)
+            {
+                List<Osoba> osoby = new List<Osoba>();
+
+                foreach (DataRow row in tabela.Rows)
+                {
+                    osoby.Add(new Osoba(
+                        Convert.ToInt32(row["ID"]),
+                        row["Imie"].ToString(),
+                        row["Nazwisko"].ToString(),
+                        Convert.ToInt32(row["Wiek"]),
+                        row["Stanowisko"].ToString()
+                    ));
+                }
+
+                XmlSerializer serializer = new XmlSerializer(typeof(List<Osoba>));
+                using (FileStream fs = new FileStream(saveDialog.FileName, FileMode.Create))
+                {
+                    serializer.Serialize(fs, osoby);
+                }
+
+                MessageBox.Show("Dane zapisano do pliku XML.");
+            }
         }
     }
 
